@@ -122,6 +122,15 @@ navbar = dbc.Navbar(
                 href="https://plotly.com",
                 style={"textDecoration": "none"},
             ),
+            dbc.Nav(
+                [
+                    dbc.NavLink("Home", href="/", active="exact"),
+                    dbc.NavLink("Page 1", href="/page-1", active="exact"),
+                    dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                ],
+                pills=True,
+            ),
+
             dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
             dbc.Collapse(
                 search_bar,
@@ -136,9 +145,8 @@ navbar = dbc.Navbar(
 )
 
 
-app.layout = dbc.Container(
+home = dbc.Container(
     [
-        navbar,
         dcc.Graph(id="graph"),
         html.Br(),
         dbc.Row(
@@ -165,6 +173,26 @@ def toggle_navbar_collapse(n, is_open):
         return not is_open
     return is_open
 
+content = html.Div(id="page-content")
+
+app.layout = html.Div([dcc.Location(id="url"), navbar, content])
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        return home
+    elif pathname == "/page-1":
+        return html.P("This is the content of page 1. Yay!")
+    elif pathname == "/page-2":
+        return html.P("Oh cool, this is page 2!")
+    # If the user tries to reach a different page, return a 404 message
+    return dbc.Jumbotron(
+        [
+            html.H1("404: Not found", className="text-danger"),
+            html.Hr(),
+            html.P(f"The pathname {pathname} was not recognised..."),
+        ]
+    )
 
 
 
