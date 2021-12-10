@@ -3,10 +3,25 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.figure_factory as ff
 from dash import Input, Output, dcc, html, State
+import numpy as np
+import plotly.graph_objects as go
+from plotly.colors import n_colors
 
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE])
+
+data = (np.linspace(1, 2, 12)[:, np.newaxis] * np.random.randn(12, 200) +
+            (np.arange(12) + 2 * np.random.random(12))[:, np.newaxis])
+
+colors = n_colors('rgb(5, 200, 200)', 'rgb(200, 10, 10)', 12, colortype='rgb')
+
+fig_ridge = go.Figure()
+for data_line, color in zip(data, colors):
+    fig_ridge.add_trace(go.Violin(x=data_line, line_color=color))
+
+fig_ridge.update_traces(orientation='h', side='positive', width=3, points=False)
+fig_ridge.update_layout(xaxis_showgrid=False, xaxis_zeroline=False)
 
 dropdown = html.Div(
     [
@@ -134,6 +149,8 @@ app.layout = dbc.Container(
                 # dbc.Col(checklist, width="auto", align="center"),
             ]
         ),
+        dcc.Graph(figure=fig_ridge)
+
     ]
 )
 
