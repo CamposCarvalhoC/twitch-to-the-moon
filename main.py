@@ -6,8 +6,11 @@ from dash import Input, Output, dcc, html, State
 import numpy as np
 import plotly.graph_objects as go
 from plotly.colors import n_colors
+import plotly.express as px
 
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
+
+df_global = pd.read_csv("data processing/data/global_viewers.csv",index_col=0,parse_dates=True)
 
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE])
 
@@ -23,6 +26,10 @@ for data_line, color in zip(data, colors):
 fig_ridge.update_traces(orientation='h', side='positive', width=3, points=False)
 fig_ridge.update_layout(xaxis_showgrid=False, xaxis_zeroline=False)
 
+
+fig_global = px.line(df_global)
+
+
 dropdown = html.Div(
     [
         dbc.Label("Number of bins in histogram (approximate):"),
@@ -34,20 +41,6 @@ dropdown = html.Div(
     ]
 )
 
-checklist = html.Div(
-    [
-        dbc.Label("Extras:"),
-        dbc.Checklist(
-            id="checklist",
-            options=[
-                {"label": "Show Sdsdsdsindividual observations", "value": "show_ind"},
-                {"label": "Show density estimate", "value": "show_dens"},
-            ],
-            value=[],
-            inline=True,
-        ),
-    ]
-)
 
 hours_watched = dbc.Card(
     [
@@ -65,40 +58,26 @@ hours_watched = dbc.Card(
 
 
 
-
-@app.callback(
-    Output("graph", "figure"),
-    [Input("dropdown", "value"), Input("checklist", "value")],
-)
-def make_graph(dropdown_value, checklist_value):
-    bin_size = (DATA.eruptions.max() - DATA.eruptions.min()) / dropdown_value
-    fig = ff.create_distplot(
-        [DATA.eruptions],
-        ["Eruption duration"],
-        bin_size=bin_size,
-        show_curve="show_dens" in checklist_value,
-        show_rug="show_ind" in checklist_value,
-    )
-    fig["layout"].update(
-        {
-            "title": "Geyser eruption duration",
-            "showlegend": False,
-            "xaxis": {"title": "Duration (minutes)"},
-            "yaxis": {"title": "Density"},
-        }
-    )
-    return fig
-
-
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+
+game_dropwdown = dcc.Dropdown(
+            id='dropwdown-game',
+            options=[
+                {'label': 'Game1', 'value': 'Game1'},
+                {'label': 'Game2', 'value': 'Game2'},
+                {'label': 'Game3', 'value': 'Game3'}
+            ],
+            value='Game1'
+        )
 
 search_bar = dbc.Row(
     [
-        dbc.Col(dbc.Input(type="search", placeholder="Search")),
+        game_dropwdown,
         dbc.Col(
+            dcc.Link(
             dbc.Button(
-                "Search", color="info", className="ms-2", n_clicks=0
-            ),
+                "Search", id="btn-search",color="info", className="ms-2"
+            ),href=f'/game/{game_dropwdown.value}',refresh=True,id='link-search'),
             width="auto",
         ),
     ],
@@ -114,7 +93,7 @@ navbar = dbc.Navbar(
                 dbc.Row(
                     [
                         dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
-                        dbc.Col(dbc.NavbarBrand("Navbar", className="ms-2")),
+                        dbc.Col(dbc.NavbarBrand("Twitch to the Moon", className="ms-2")),
                     ],
                     align="center",
                     className="g-0",
@@ -124,9 +103,7 @@ navbar = dbc.Navbar(
             ),
             dbc.Nav(
                 [
-                    dbc.NavLink("Home", href="/", active="exact"),
-                    dbc.NavLink("Page 1", href="/page-1", active="exact"),
-                    dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                    dbc.NavLink("Home", href="/", active="exact")
                 ],
                 pills=True,
             ),
@@ -147,7 +124,7 @@ navbar = dbc.Navbar(
 
 home = dbc.Container(
     [
-        dcc.Graph(id="graph"),
+        dcc.Graph(figure=fig_global),
         html.Br(),
         dbc.Row(
             [
@@ -161,6 +138,13 @@ home = dbc.Container(
 
     ]
 )
+
+def game_page(game):
+    return dbc.Container([
+        html.H1(game,className="text-center mt-5"),
+        dcc.Graph(figure=fig_global),# figure=fig_game_global
+        dcc.Graph(figure=fig_global)# figure=fig_game_domination
+    ])
 
 # add callback for toggling the collapse on small screens
 @app.callback(
@@ -179,8 +163,12 @@ app.layout = html.Div([dcc.Location(id="url"), navbar, content])
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
+    link = pathname.split("/")
+    print(link)
     if pathname == "/":
         return home
+    elif link[1]=="game":
+        return game_page(link[2])
     elif pathname == "/page-1":
         return html.P("This is the content of page 1. Yay!")
     elif pathname == "/page-2":
@@ -194,7 +182,12 @@ def render_page_content(pathname):
         ]
     )
 
-
+@app.callback(
+    Output('link-search', 'href'),
+    Input('dropwdown-game', 'value')
+)
+def update_href_search(value):
+    return f"/game/{value}"
 
 if __name__ == "__main__":
     app.run_server(debug=True, port=8888, use_reloader=True)
