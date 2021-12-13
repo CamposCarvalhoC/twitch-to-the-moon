@@ -1,3 +1,4 @@
+from re import search
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -7,6 +8,7 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.colors import n_colors
 import plotly.express as px
+
 
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
@@ -29,46 +31,70 @@ fig_ridge.update_layout(xaxis_showgrid=False, xaxis_zeroline=False)
 
 fig_global = px.line(df_global)
 
+############################################################
+##                                                        ##
+##                   Home page                            ##
+##                                                        ##
+############################################################
 
-dropdown = html.Div(
-    [
-        dbc.Label("Number of bins in histogram (approximate):"),
-        dcc.Dropdown(
-            id="dropdown",
-            options=[{"label": n, "value": n} for n in [10, 20, 35, 50]],
-            value=20,
-        ),
-    ]
-)
-
-
-hours_watched = dbc.Card(
+def create_value_card(title, value):
+    return dbc.Card(
     [
         dbc.CardBody(
             [
-                html.H4("Total numbers of hours watched", className="card-title text-center"),
-                html.H1("123213", className="card-text text-center")
-            ]
-            
+                html.H4(title, className="card-title text-center"),
+                html.H1(value, className="card-text text-center")
+            ]            
         )
     
+    ], color="primary", class_name="text-light ", 
+)
+
+home = dbc.Container(
+    [
+        dcc.Graph(figure=fig_global),
+        html.Br(),
+        dbc.Row(
+            [
+                
+                dbc.Col(create_value_card("Total numbers of hours watched", "123123")),
+                dbc.Col(create_value_card("Total numbers of hours streamed", "123123")),
+            ]
+        ),
+        dcc.Graph(figure=fig_ridge)
     ]
 )
 
 
+############################################################
+##                                                        ##
+##                   Game page                            ##
+##                                                        ##
+############################################################
+
+def game_page(game):
+    return dbc.Container([
+        html.H1(game,className="text-center mt-5"),
+        dcc.Graph(figure=fig_global),# figure=fig_game_global
+        dcc.Graph(figure=fig_global)# figure=fig_game_domination
+    ])
 
 
-PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+############################################################
+##                                                        ##
+##                   Navbar&Layout                        ##
+##                                                        ##
+############################################################
 
 game_dropwdown = dcc.Dropdown(
-            id='dropwdown-game',
-            options=[
-                {'label': 'Game1', 'value': 'Game1'},
-                {'label': 'Game2', 'value': 'Game2'},
-                {'label': 'Game3', 'value': 'Game3'}
-            ],
-            value='Game1'
-        )
+    id='dropwdown-game',
+    options=[
+        {'label': 'Game1', 'value': 'Game1'},
+        {'label': 'Game2', 'value': 'Game2'},
+        {'label': 'Game3', 'value': 'Game3'}
+    ],
+    value='Game1'
+)
 
 search_bar = dbc.Row(
     [
@@ -92,13 +118,13 @@ navbar = dbc.Navbar(
                 # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
                     [
-                        dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+                        # dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
                         dbc.Col(dbc.NavbarBrand("Twitch to the Moon", className="ms-2")),
                     ],
                     align="center",
                     className="g-0",
                 ),
-                href="https://plotly.com",
+                href="/",
                 style={"textDecoration": "none"},
             ),
             dbc.Nav(
@@ -121,30 +147,16 @@ navbar = dbc.Navbar(
     dark=True,
 )
 
+content = html.Div(id="page-content")
 
-home = dbc.Container(
-    [
-        dcc.Graph(figure=fig_global),
-        html.Br(),
-        dbc.Row(
-            [
-                dbc.Col(hours_watched),
-                dbc.Col(hours_watched, align="center"),
-                # dbc.Col(dropdown),
-                # dbc.Col(checklist, width="auto", align="center"),
-            ]
-        ),
-        dcc.Graph(figure=fig_ridge)
+app.layout = html.Div([dcc.Location(id="url"), content])
 
-    ]
-)
+############################################################
+##                                                        ##
+##                      Callback                          ##
+##                                                        ##
+############################################################
 
-def game_page(game):
-    return dbc.Container([
-        html.H1(game,className="text-center mt-5"),
-        dcc.Graph(figure=fig_global),# figure=fig_game_global
-        dcc.Graph(figure=fig_global)# figure=fig_game_domination
-    ])
 
 # add callback for toggling the collapse on small screens
 @app.callback(
@@ -157,9 +169,6 @@ def toggle_navbar_collapse(n, is_open):
         return not is_open
     return is_open
 
-content = html.Div(id="page-content")
-
-app.layout = html.Div([dcc.Location(id="url"), navbar, content])
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
@@ -188,6 +197,14 @@ def render_page_content(pathname):
 )
 def update_href_search(value):
     return f"/game/{value}"
+
+
+
+############################################################
+##                                                        ##
+##                        Main                            ##
+##                                                        ##
+############################################################
 
 if __name__ == "__main__":
     app.run_server(debug=True, port=8888, use_reloader=True)
