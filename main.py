@@ -14,7 +14,7 @@ DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
 df_global = pd.read_csv("data processing/data/global_viewers.csv",index_col=0,parse_dates=True)
 
-app = dash.Dash(external_stylesheets=[dbc.themes.PULSE])
+app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 
 data = (np.linspace(1, 2, 12)[:, np.newaxis] * np.random.randn(12, 200) +
             (np.arange(12) + 2 * np.random.random(12))[:, np.newaxis])
@@ -72,11 +72,28 @@ home = dbc.Container(
 ##                                                        ##
 ############################################################
 
+
+game_stats = dbc.Row([
+    html.P("Game Stats")
+],id='game-stats')
+
 def game_page(game):
     return dbc.Container([
         html.H1(game,className="text-center mt-5"),
         dcc.Graph(figure=fig_global),# figure=fig_game_global
-        dcc.Graph(figure=fig_global)# figure=fig_game_domination
+        dcc.Graph(figure=fig_global),# figure=fig_game_domination
+        dbc.Row([
+            dbc.Col([
+                html.P('Games to Add',className='text-center'),
+                dbc.Row([
+                    dbc.Col([game_compare],width=9),
+                    #dbc.Col([dbc.Button(html.I(className="bi bi-plus-circle-fill"), id="btn-add",n_clicks=0,color="success", className="ms-2")],width=1)
+                ])
+            ]),
+            dbc.Col([
+                game_stats
+            ])
+        ])
     ])
 
 
@@ -85,14 +102,21 @@ def game_page(game):
 ##                   Navbar&Layout                        ##
 ##                                                        ##
 ############################################################
-
-game_dropwdown = dcc.Dropdown(
-    id='dropwdown-game',
-    options=[
+games=[
         {'label': 'Game1', 'value': 'Game1'},
         {'label': 'Game2', 'value': 'Game2'},
         {'label': 'Game3', 'value': 'Game3'}
-    ],
+]
+
+game_compare = dcc.Dropdown(
+    id='dropwdown-game-compare',
+    options=games,
+    value='Game1',
+    multi=True
+)
+game_dropwdown = dcc.Dropdown(
+    id='dropwdown-game',
+    options=games,
     value='Game1'
 )
 
@@ -149,7 +173,7 @@ navbar = dbc.Navbar(
 
 content = html.Div(id="page-content")
 
-app.layout = html.Div([dcc.Location(id="url"), content])
+app.layout = html.Div([dcc.Location(id="url"),navbar, content])
 
 ############################################################
 ##                                                        ##
@@ -173,7 +197,6 @@ def toggle_navbar_collapse(n, is_open):
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
     link = pathname.split("/")
-    print(link)
     if pathname == "/":
         return home
     elif link[1]=="game":
@@ -199,7 +222,59 @@ def update_href_search(value):
     return f"/game/{value}"
 
 
+def add_row_game(game):
+    return dbc.Row([
+                dbc.Col([html.P(f"{game}")],width=9)
+            ])
 
+@app.callback(
+    Output('game-stats', 'children'),
+    [Input('dropwdown-game-compare', 'value')],
+    [State('game-stats', 'children')],
+)
+def update_dropdown_compare(value,children):
+    children = [html.P("Game Stats")]
+    if isinstance(value,list):
+        for game in value:
+            el = add_row_game(game)
+            children.append(el)
+    elif isinstance(value, str):
+        el = add_row_game(value)
+        children.append(el)
+
+    return children
+'''
+@app.callback(
+    Output('game-stats', 'children'),
+    [Input('btn-add', 'n_clicks')],
+    [State('dropwdown-game', 'value'),State('game-stats', 'children')],
+)
+def add_game(n_clicks, value, children):
+    if children:
+        #print(children)
+        el = dbc.Container([
+            dbc.Row([
+                dbc.Col([html.P(f"{value}")],width=9),
+                dbc.Col([dbc.Button(html.I(className="bi bi-trash-fill"), id=f"btn-del-{value}",n_clicks=0,color="danger", className="ms-2")],width=1),
+        ])]
+        ,id=f'{value}-stats')
+
+        children.append(el)
+        return children
+
+
+@app.callback(
+    Output('game-stats', 'id'),
+    [Input('btn-add','n_clicks')],
+    [State('game-stats', 'children')],
+)
+def add_game(*n_clicks, children):
+    ctx = dash.callback_context
+    print(ctx)
+    if children:
+        print(n_clicks)
+        print(dash.callback_context.triggered[0])
+'''
 ############################################################
 ##                                                        ##
 ##                        Main                            ##
