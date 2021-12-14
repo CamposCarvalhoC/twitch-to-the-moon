@@ -8,11 +8,18 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.colors import n_colors
 import plotly.express as px
-
+from urllib.parse import unquote
 
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
 df_global = pd.read_csv("data processing/data/global_viewers.csv",index_col=0,parse_dates=True)
+
+# Dataframes radar
+df_radar_avg_views = pd.read_csv("data processing/data/radar_avg_views.csv",squeeze=True,index_col=0)
+df_radar_ratio_watch = pd.read_csv("data processing/data/radar_ratio_watch.csv",squeeze=True,index_col=0)
+df_radar_ratio = pd.read_csv("data processing/data/radar_ratio.csv",squeeze=True,index_col=0)
+df_radar_total_streamers = pd.read_csv("data processing/data/radar_total_streamers.csv",squeeze=True,index_col=0)
+df_radar_total_views = pd.read_csv("data processing/data/radar_total_views.csv",squeeze=True,index_col=0)
 
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 
@@ -28,9 +35,9 @@ for data_line, color in zip(data, colors):
 fig_ridge.update_traces(orientation='h', side='positive', width=3, points=False)
 fig_ridge.update_layout(xaxis_showgrid=False, xaxis_zeroline=False)
 
-
 fig_global = px.line(df_global)
 
+categories = ['Avg. views','Ratio watch', 'Ratio', 'Streamers','Views']
 ############################################################
 ##                                                        ##
 ##                   Home page                            ##
@@ -56,7 +63,6 @@ home = dbc.Container(
         html.Br(),
         dbc.Row(
             [
-                
                 dbc.Col(create_value_card("Total numbers of hours watched", "123123")),
                 dbc.Col(create_value_card("Total numbers of hours streamed", "123123")),
             ]
@@ -71,13 +77,19 @@ home = dbc.Container(
 ##                   Game page                            ##
 ##                                                        ##
 ############################################################
-
+games=[{'label':game,'value':game}for game in df_radar_avg_views.index]
 
 game_stats = dbc.Row([
     html.P("Game Stats")
 ],id='game-stats')
 
 def game_page(game):
+    game_compare = dcc.Dropdown(
+        id='dropwdown-game-compare',
+        options=games,
+        value=game,
+        multi=True
+    )
     return dbc.Container([
         html.H1(game,className="text-center mt-5"),
         dcc.Graph(figure=fig_global),# figure=fig_game_global
@@ -86,9 +98,9 @@ def game_page(game):
             dbc.Col([
                 html.P('Games to Add',className='text-center'),
                 dbc.Row([
-                    dbc.Col([game_compare],width=9),
-                    #dbc.Col([dbc.Button(html.I(className="bi bi-plus-circle-fill"), id="btn-add",n_clicks=0,color="success", className="ms-2")],width=1)
-                ])
+                    dbc.Col([game_compare]),
+                ]),
+                dcc.Graph(id='fig-radar')
             ]),
             dbc.Col([
                 game_stats
@@ -102,22 +114,11 @@ def game_page(game):
 ##                   Navbar&Layout                        ##
 ##                                                        ##
 ############################################################
-games=[
-        {'label': 'Game1', 'value': 'Game1'},
-        {'label': 'Game2', 'value': 'Game2'},
-        {'label': 'Game3', 'value': 'Game3'}
-]
 
-game_compare = dcc.Dropdown(
-    id='dropwdown-game-compare',
-    options=games,
-    value='Game1',
-    multi=True
-)
 game_dropwdown = dcc.Dropdown(
     id='dropwdown-game',
     options=games,
-    value='Game1'
+    value='Fortnite'
 )
 
 search_bar = dbc.Row(
@@ -142,7 +143,7 @@ navbar = dbc.Navbar(
                 # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
                     [
-                        # dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+                        #dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
                         dbc.Col(dbc.NavbarBrand("Twitch to the Moon", className="ms-2")),
                     ],
                     align="center",
@@ -200,7 +201,7 @@ def render_page_content(pathname):
     if pathname == "/":
         return home
     elif link[1]=="game":
-        return game_page(link[2])
+        return game_page(unquote(link[2]))
     elif pathname == "/page-1":
         return html.P("This is the content of page 1. Yay!")
     elif pathname == "/page-2":
@@ -221,11 +222,56 @@ def render_page_content(pathname):
 def update_href_search(value):
     return f"/game/{value}"
 
+@app.callback(
+    Output('fig-radar', 'figure'),
+    Input('dropwdown-game-compare', 'value')
+)
+def update_fig_radar(value):
+    fig_radar = go.Figure()
+    if isinstance(value,list):
+        for game in value:
+            add_radar_trace(fig_radar,game)
+    elif isinstance(value, str):
+        add_radar_trace(fig_radar,value)
+    
+    
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(
+            visible=True,
+            )),
+        showlegend=False
+    )
+
+    return fig_radar
+
 
 def add_row_game(game):
-    return dbc.Row([
-                dbc.Col([html.P(f"{game}")],width=9)
+    return html.Tr([
+                html.Th([html.P(f"{game}")],scope="row"),
+                html.Td([html.P(f"{df_radar_avg_views[game]/1000:.2f}k")]),
+                html.Td([html.P(f"{df_radar_ratio_watch[game]:.2f}")]),
+                html.Td([html.P(f"{df_radar_ratio[game]:.2f}")]),
+                html.Td([html.P(f"{df_radar_total_streamers[game]/1000:.2f}k")]),
+                html.Td([html.P(f"{df_radar_total_views[game]/1000:.2f}k")]),
             ])
+
+def add_radar_trace(fig_radar,game):
+    fig_radar.add_trace(go.Scatterpolar(
+        r=[df_radar_avg_views[game]/1000,df_radar_ratio_watch[game],df_radar_ratio[game],df_radar_total_streamers[game]/1000,df_radar_total_views[game]/1000],
+        theta=categories,
+        fill='toself',
+        name=game
+    ))
+
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(
+            visible=True,
+            )),
+        showlegend=False
+    )
+
 
 @app.callback(
     Output('game-stats', 'children'),
@@ -233,48 +279,34 @@ def add_row_game(game):
     [State('game-stats', 'children')],
 )
 def update_dropdown_compare(value,children):
-    children = [html.P("Game Stats")]
+    table = [html.Thead([
+                html.Tr([
+                    html.Th([html.P("Game")],scope='col'),
+                    html.Th([html.P("Avg. views")],scope='col'),
+                    html.Th([html.P("Ratio watch")],scope='col'),
+                    html.Th([html.P("Ratio")],scope='col'),
+                    html.Th([html.P("Streamers")],scope='col'),
+                    html.Th([html.P("Views")],scope='col')
+            ])
+            ],className='thead-dark')]
+    children = [
+        dbc.Row([
+            dbc.Col([html.P("Game Stats")])
+        ]),
+        dbc.Row([
+            html.Table(table,className='table table-striped')
+        ])
+    ]
     if isinstance(value,list):
         for game in value:
-            el = add_row_game(game)
-            children.append(el)
+            row = add_row_game(game)
+            table.append(row)
     elif isinstance(value, str):
-        el = add_row_game(value)
-        children.append(el)
+        row = add_row_game(value)
+        table.append(row)
 
     return children
-'''
-@app.callback(
-    Output('game-stats', 'children'),
-    [Input('btn-add', 'n_clicks')],
-    [State('dropwdown-game', 'value'),State('game-stats', 'children')],
-)
-def add_game(n_clicks, value, children):
-    if children:
-        #print(children)
-        el = dbc.Container([
-            dbc.Row([
-                dbc.Col([html.P(f"{value}")],width=9),
-                dbc.Col([dbc.Button(html.I(className="bi bi-trash-fill"), id=f"btn-del-{value}",n_clicks=0,color="danger", className="ms-2")],width=1),
-        ])]
-        ,id=f'{value}-stats')
 
-        children.append(el)
-        return children
-
-
-@app.callback(
-    Output('game-stats', 'id'),
-    [Input('btn-add','n_clicks')],
-    [State('game-stats', 'children')],
-)
-def add_game(*n_clicks, children):
-    ctx = dash.callback_context
-    print(ctx)
-    if children:
-        print(n_clicks)
-        print(dash.callback_context.triggered[0])
-'''
 ############################################################
 ##                                                        ##
 ##                        Main                            ##
