@@ -191,7 +191,7 @@ def game_page(game):
         multi=True
     )
     return dbc.Container([
-        html.H1(game,className="text-center mt-5"),
+        html.H1(game,className="text-center text-primary mt-5"),
         dcc.Graph(figure=fig_global),# figure=fig_game_global
         dcc.Graph(figure=fig_global),# figure=fig_game_domination
         dbc.Row([
