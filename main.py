@@ -80,7 +80,7 @@ home = dbc.Container(
 games=[{'label':game,'value':game}for game in df_radar_avg_views.index]
 
 game_stats = dbc.Row([
-    html.P("Game Stats")
+    html.H2("Game Stats",className="text-center text-primary")
 ],id='game-stats')
 
 def game_page(game):
@@ -96,7 +96,7 @@ def game_page(game):
         dcc.Graph(figure=fig_global),# figure=fig_game_domination
         dbc.Row([
             dbc.Col([
-                html.P('Games to Add',className='text-center'),
+                html.H2('Games to Add',className='text-center text-primary'),
                 dbc.Row([
                     dbc.Col([game_compare]),
                 ]),
@@ -240,7 +240,7 @@ def update_fig_radar(value):
             radialaxis=dict(
             visible=True,
             )),
-        showlegend=False
+        showlegend=True
     )
 
     return fig_radar
@@ -248,12 +248,12 @@ def update_fig_radar(value):
 
 def add_row_game(game):
     return html.Tr([
-                html.Th([html.P(f"{game}")],scope="row"),
-                html.Td([html.P(f"{df_radar_avg_views[game]/1000:.2f}k")]),
-                html.Td([html.P(f"{df_radar_ratio_watch[game]:.2f}")]),
-                html.Td([html.P(f"{df_radar_ratio[game]:.2f}")]),
-                html.Td([html.P(f"{df_radar_total_streamers[game]/1000:.2f}k")]),
-                html.Td([html.P(f"{df_radar_total_views[game]/1000:.2f}k")]),
+                html.Th(f"{game}",scope="row",className='text-center align-middle'),
+                html.Td(f"{df_radar_avg_views[game]/1000:.2f}k",className='text-center align-middle'),
+                html.Td(f"{df_radar_ratio_watch[game]:.2f}",className='text-center align-middle'),
+                html.Td(f"{df_radar_ratio[game]:.2f}",className='text-center align-middle'),
+                html.Td(f"{df_radar_total_streamers[game]/1000:.2f}k",className='text-center align-middle'),
+                html.Td(f"{df_radar_total_views[game]/1000:.2f}k",className='text-center align-middle'),
             ])
 
 def add_radar_trace(fig_radar,game):
@@ -279,31 +279,32 @@ def add_radar_trace(fig_radar,game):
     [State('game-stats', 'children')],
 )
 def update_dropdown_compare(value,children):
-    table = [html.Thead([
+    thead = [html.Thead([
                 html.Tr([
-                    html.Th([html.P("Game")],scope='col'),
-                    html.Th([html.P("Avg. views")],scope='col'),
-                    html.Th([html.P("Ratio watch")],scope='col'),
-                    html.Th([html.P("Ratio")],scope='col'),
-                    html.Th([html.P("Streamers")],scope='col'),
-                    html.Th([html.P("Views")],scope='col')
+                    html.Th("Game",scope='col',className='text-center align-middle'),
+                    html.Th("Avg. views",scope='col',className='text-center align-middle'),
+                    html.Th("Ratio watch",scope='col',className='text-center align-middle'),
+                    html.Th("Ratio",scope='col',className='text-center align-middle'),
+                    html.Th("Streamers",scope='col',className='text-center align-middle'),
+                    html.Th("Views",scope='col',className='text-center align-middle')
             ])
-            ],className='thead-dark')]
+            ],className='thead-light')]
+    tbody = []
     children = [
         dbc.Row([
-            dbc.Col([html.P("Game Stats")])
+            dbc.Col([html.H2("Game Stats",className="text-center text-primary")])
         ]),
         dbc.Row([
-            html.Table(table,className='table table-striped')
+            dbc.Table(thead + [html.Tbody(tbody)],bordered=True,dark=False,hover=True,responsive=True,striped=True,color='secondary')
         ])
     ]
     if isinstance(value,list):
         for game in value:
             row = add_row_game(game)
-            table.append(row)
+            tbody.append(row)
     elif isinstance(value, str):
         row = add_row_game(value)
-        table.append(row)
+        tbody.append(row)
 
     return children
 
