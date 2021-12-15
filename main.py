@@ -2,6 +2,7 @@ from re import search
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
+from pandas.io.formats.format import TextAdjustment
 import plotly.figure_factory as ff
 from dash import Input, Output, dcc, html, State
 import numpy as np
@@ -9,6 +10,9 @@ import plotly.graph_objects as go
 from plotly.colors import n_colors
 import plotly.express as px
 from urllib.parse import unquote
+import math
+
+
 
 
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
@@ -31,6 +35,19 @@ df_radar_ratio_n = df_radar_ratio.copy()
 df_radar_total_streamers_n = df_radar_total_streamers.copy()
 df_radar_total_views_n = df_radar_total_views.copy()
 
+
+def normalize(df_rdr):
+    max_val = df_rdr.max()
+    df_rdr = np.log((df_rdr / max_val)*100) / np.log(1.000001)
+    return df_rdr
+
+df_radar_avg_views_n = normalize(df_radar_avg_views_n)
+df_radar_ratio_watch_n = normalize(df_radar_ratio_watch_n)
+df_radar_ratio_n = normalize(df_radar_ratio_n)
+df_radar_total_streamers_n = normalize(df_radar_total_streamers_n)
+df_radar_total_views_n = normalize(df_radar_total_views_n)
+
+print(df_radar_avg_views_n["Fortnite"])
 
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 
@@ -358,7 +375,7 @@ def add_row_game(game):
 
 def add_radar_trace(fig_radar,game):
     fig_radar.add_trace(go.Scatterpolar(
-        r=[df_radar_avg_views[game]/1000,df_radar_ratio_watch[game],df_radar_ratio[game],df_radar_total_streamers[game]/1000,df_radar_total_views[game]/1000],
+        r=[df_radar_avg_views_n[game],df_radar_ratio_watch_n[game],df_radar_ratio_n[game],df_radar_total_streamers_n[game],df_radar_total_views_n[game]],
         theta=categories,
         fill='toself',
         name=game
