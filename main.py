@@ -10,6 +10,7 @@ from plotly.colors import n_colors
 import plotly.express as px
 from urllib.parse import unquote
 
+
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
 df_global = pd.read_csv("data processing/data/global_viewers.csv",index_col=0,parse_dates=True)
@@ -21,7 +22,40 @@ df_radar_ratio = pd.read_csv("data processing/data/radar_ratio.csv",squeeze=True
 df_radar_total_streamers = pd.read_csv("data processing/data/radar_total_streamers.csv",squeeze=True,index_col=0)
 df_radar_total_views = pd.read_csv("data processing/data/radar_total_views.csv",squeeze=True,index_col=0)
 
+# Dataframes radar
+df_radar_avg_views_n = df_radar_avg_views.copy()
+df_radar_ratio_watch_n = df_radar_ratio_watch.copy()
+df_radar_ratio_n = df_radar_ratio.copy()
+df_radar_total_streamers_n = df_radar_total_streamers.copy()
+df_radar_total_views_n = df_radar_total_views.copy()
+
+
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
+
+############################################################
+##                                                        ##
+##                   Fig home page                        ##
+##                                                        ##
+############################################################
+
+fig_home_page = go.Figure()
+fig_home_page.add_trace(go.Scatter(x=df_global.index, y=df_global["Avg_viewers"], mode="lines+markers"))
+
+fig_home_page.update_layout(
+    title_text="Average viewers per month since 2016",
+    xaxis_title="Date",
+    yaxis_title="Average viewers",
+
+)
+
+############################################################
+##                                                        ##
+##                   Ridge plot home page                 ##
+##                                                        ##
+############################################################
+
+
+
 
 data = (np.linspace(1, 2, 12)[:, np.newaxis] * np.random.randn(12, 200) +
             (np.arange(12) + 2 * np.random.random(12))[:, np.newaxis])
@@ -49,7 +83,7 @@ def create_value_card(title, value):
     [
         dbc.CardBody(
             [
-                html.H4(title, className="card-title text-center"),
+                html.H5(title, className="card-title text-center"),
                 html.H1(value, className="card-text text-center")
             ]            
         )
@@ -59,12 +93,13 @@ def create_value_card(title, value):
 
 home = dbc.Container(
     [
-        dcc.Graph(figure=fig_global),
+        dcc.Graph(figure=fig_home_page),
         html.Br(),
         dbc.Row(
             [
-                dbc.Col(create_value_card("Total numbers of hours watched", "123123")),
-                dbc.Col(create_value_card("Total numbers of hours streamed", "123123")),
+                
+                dbc.Col(create_value_card("Total numbers of hours watched", "65'514'080'059")),
+                dbc.Col(create_value_card("Total numbers of hours streamed", "2'158'669'079")),
             ]
         ),
         dcc.Graph(figure=fig_ridge)
@@ -174,7 +209,7 @@ navbar = dbc.Navbar(
 
 content = html.Div(id="page-content")
 
-app.layout = html.Div([dcc.Location(id="url"),navbar, content])
+app.layout = html.Div([dcc.Location(id="url"), navbar, content])
 
 ############################################################
 ##                                                        ##
