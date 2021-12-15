@@ -14,6 +14,8 @@ from urllib.parse import unquote
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
 df_global = pd.read_csv("data processing/data/global_viewers.csv",index_col=0,parse_dates=True)
+df_ridge = pd.read_csv("data processing/data/top_games_viewers.csv",index_col=0,parse_dates=True)
+df_ridge.set_index("date", inplace=True)
 
 # Dataframes radar
 df_radar_avg_views = pd.read_csv("data processing/data/radar_avg_views.csv",squeeze=True,index_col=0)
@@ -50,24 +52,87 @@ fig_home_page.update_layout(
 
 ############################################################
 ##                                                        ##
-##                   Ridge plot home page                 ##
+##                   Ridge plot                           ##
 ##                                                        ##
 ############################################################
 
-
-
-
-data = (np.linspace(1, 2, 12)[:, np.newaxis] * np.random.randn(12, 200) +
-            (np.arange(12) + 2 * np.random.random(12))[:, np.newaxis])
-
-colors = n_colors('rgb(5, 200, 200)', 'rgb(200, 10, 10)', 12, colortype='rgb')
-
 fig_ridge = go.Figure()
-for data_line, color in zip(data, colors):
-    fig_ridge.add_trace(go.Violin(x=data_line, line_color=color))
 
-fig_ridge.update_traces(orientation='h', side='positive', width=3, points=False)
-fig_ridge.update_layout(xaxis_showgrid=False, xaxis_zeroline=False)
+symbols = ["circle", "square", "diamond", "cross", "x", "triangle-up", "triangle-down", "pentagon", "hexagram", "star", "diamond", "hourglass", "bowtie", "asterisk", "hash", "y", "line"]
+
+for df_col, sym in zip(df_ridge.columns, symbols):
+    fig_ridge.add_trace(go.Scatter(y=df_ridge[df_col], x=df_ridge.index, marker_symbol=sym, marker_size=8,name=df_col, mode="lines+markers"))
+
+button_layer_1_height = 1.15
+fig_ridge.update_layout(
+    updatemenus=[
+        dict(
+            buttons=list([
+                dict(
+                    args=["colorway", None],
+                    label="Default",
+                    method="relayout"
+                ),
+                dict(
+                    args=["colorway", px.colors.sequential.Viridis],
+                    label="Viridis",
+                    method="relayout"
+                ),
+                dict(
+                    args=["colorway", px.colors.qualitative.D3],
+                    label="D3",
+                    method="relayout"
+                ),
+                dict(
+                    args=["colorway", px.colors.sequential.Rainbow],
+                    label="Rainbow",
+                    method="relayout"
+                ),
+            ]),
+            direction="down",
+            showactive=True,
+            x=0.1,
+            xanchor="left",
+            y=button_layer_1_height,
+            yanchor="top"
+        ),
+        dict(
+            buttons=list([
+                dict(
+                    args=["mode", "lines+markers"],
+                    label="Lines+markers",
+                    method="restyle"
+                ),
+                dict(
+                    args=["mode", "lines"],
+                    label="Lines",
+                    method="restyle"
+                ),
+                dict(
+                    args=["mode", "markers"],
+                    label="Markers",
+                    method="restyle"
+                ),
+            ]),
+            direction="down",
+            showactive=True,
+            x=0.45,
+            xanchor="left",
+            y=button_layer_1_height,
+            yanchor="top"
+        ),
+    ]
+)
+
+fig_ridge.update_layout(
+    annotations=[
+        dict(text="Colorscale", x=0.02, xref="paper", y=1.12, yref="paper",
+                             align="left", showarrow=False),
+        dict(text="Lines and markers", x=0.3, xref="paper", y=1.12, yref="paper",
+                             showarrow=False)
+    ])
+
+
 
 fig_global = px.line(df_global)
 
