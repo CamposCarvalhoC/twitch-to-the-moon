@@ -18,8 +18,13 @@ import math
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
 
 df_global = pd.read_csv("data processing/data/global_viewers.csv",index_col=0,parse_dates=True)
+df_viewers = pd.read_csv("data processing/data/all_games_viewers.csv",index_col=0,parse_dates=True)
+df_domination = pd.read_csv("data processing/data/all_games_domination.csv",index_col=0,parse_dates=True)
+
 df_ridge = pd.read_csv("data processing/data/top_games_viewers.csv",index_col=0,parse_dates=True)
 df_ridge.set_index("date", inplace=True)
+df_viewers.set_index("date", inplace=True)
+df_domination.set_index("date", inplace=True)
 
 # Dataframes radar
 df_radar_avg_views = pd.read_csv("data processing/data/radar_avg_views.csv",squeeze=True,index_col=0)
@@ -209,8 +214,8 @@ def game_page(game):
     )
     return dbc.Container([
         html.H1(game,className="text-center text-primary mt-5"),
-        dcc.Graph(figure=fig_global),# figure=fig_game_global
-        dcc.Graph(figure=fig_global),# figure=fig_game_domination
+        dcc.Graph(id='game-avg-viewers'),# figure=fig_game_global
+        dcc.Graph(id='game-domination'),# figure=fig_game_domination
         dbc.Row([
             dbc.Col([
                 html.H2('Games to Add',className='text-center text-primary'),
@@ -362,6 +367,55 @@ def update_fig_radar(value):
 
     return fig_radar
 
+@app.callback(
+    Output('game-domination', 'figure'),
+    Input('dropwdown-game-compare', 'value')
+)
+def update_game_avg_viewers(value):
+    fig_domination = go.Figure()
+    if isinstance(value,list):
+        for game in value:
+            add_game_domination_line(fig_domination,game)
+    elif isinstance(value, str):
+        add_game_domination_line(fig_domination,value)
+    
+    fig_domination.update_layout(
+        #plot_bgcolor ='thistle',
+        title="Domination by game",
+        xaxis_title="Date",
+        yaxis_title="Domination",
+        legend_title="Games",
+        font=dict(color="RebeccaPurple",size=18)
+    )
+    return fig_domination
+
+@app.callback(
+    Output('game-avg-viewers', 'figure'),
+    Input('dropwdown-game-compare', 'value')
+)
+def update_game_avg_viewers(value):
+    fig_game_avg = go.Figure()
+    if isinstance(value,list):
+        for game in value:
+            add_game_line(fig_game_avg,game)
+    elif isinstance(value, str):
+        add_game_line(fig_game_avg,value)
+    
+    fig_game_avg.update_layout(
+        #plot_bgcolor ='thistle',
+        title="Average viewers by game",
+        xaxis_title="Date",
+        yaxis_title="Average viewers",
+        legend_title="Games",
+        font=dict(color="RebeccaPurple",size=18)
+    )
+    return fig_game_avg
+
+def add_game_line(fig,game):
+    fig.add_trace(go.Scatter(y=df_viewers[game], x=df_viewers.index,marker_size=8,name=game, mode="lines+markers"))
+
+def add_game_domination_line(fig,game):
+    fig.add_trace(go.Scatter(y=df_domination[game], x=df_domination.index,marker_size=8,name=game, mode="lines+markers"))
 
 def add_row_game(game):
     return html.Tr([
