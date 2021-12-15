@@ -22,6 +22,14 @@ df_radar_ratio = pd.read_csv("data processing/data/radar_ratio.csv",squeeze=True
 df_radar_total_streamers = pd.read_csv("data processing/data/radar_total_streamers.csv",squeeze=True,index_col=0)
 df_radar_total_views = pd.read_csv("data processing/data/radar_total_views.csv",squeeze=True,index_col=0)
 
+# Dataframes radar
+df_radar_avg_views_n = df_radar_avg_views.copy()
+df_radar_ratio_watch_n = df_radar_ratio_watch.copy()
+df_radar_ratio_n = df_radar_ratio.copy()
+df_radar_total_streamers_n = df_radar_total_streamers.copy()
+df_radar_total_views_n = df_radar_total_views.copy()
+
+
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 
 ############################################################
