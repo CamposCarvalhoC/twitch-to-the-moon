@@ -363,7 +363,8 @@ def add_radar_trace(fig_radar,game):
             visible=True,
             )),
         showlegend=False,
-        dragmode=False
+        dragmode=False,
+        modebar_remove=["zoom", "pan", "select", "lasso"]
     )
 
 
