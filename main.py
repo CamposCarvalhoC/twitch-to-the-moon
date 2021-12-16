@@ -12,7 +12,27 @@ import plotly.express as px
 from urllib.parse import unquote
 import math
 
+############################################################
+##                                                        ##
+##                   Utils                                ##
+##                                                        ##
+############################################################
 
+class symbols_gen():
+    def __init__(self) -> None:
+        symbols = ["circle", "square", "diamond", "cross", "x", "triangle-up", "triangle-down", "pentagon", "hexagram", "star", "diamond", "hourglass", "bowtie", "asterisk", "hash", "y", "line"]
+        self.n = 0
+        self.max = len(symbols)
+    
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.n >= self.max:
+            self.n = 0
+        sym = symbols[self.n]
+        self.n += 1
+        return sym
 
 
 DATA = pd.read_csv("https://cdn.opensource.faculty.ai/old-faithful/data.csv")
@@ -54,6 +74,82 @@ df_radar_total_views_n = normalize(df_radar_total_views_n)
 
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 
+
+############################################################
+##                                                        ##
+##                   Accessibility                        ##
+##                                                        ##
+############################################################
+
+def add_dropdown_accessibility(fig):
+    button_layer_1_height = 1.15
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                buttons=list([
+                    dict(
+                        args=["colorway", None],
+                        label="Default",
+                        method="relayout"
+                    ),
+                    dict(
+                        args=["colorway", px.colors.sequential.Viridis],
+                        label="Viridis",
+                        method="relayout"
+                    ),
+                    dict(
+                        args=["colorway", px.colors.qualitative.D3],
+                        label="D3",
+                        method="relayout"
+                    ),
+                    dict(
+                        args=["colorway", px.colors.sequential.Rainbow],
+                        label="Rainbow",
+                        method="relayout"
+                    ),
+                ]),
+                direction="down",
+                showactive=True,
+                x=0.15,
+                xanchor="left",
+                y=button_layer_1_height,
+                yanchor="top"
+            ),
+            dict(
+                buttons=list([
+                    dict(
+                        args=["mode", "lines+markers"],
+                        label="Lines+markers",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["mode", "lines"],
+                        label="Lines",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["mode", "markers"],
+                        label="Markers",
+                        method="restyle"
+                    ),
+                ]),
+                direction="down",
+                showactive=True,
+                x=0.55,
+                xanchor="left",
+                y=button_layer_1_height,
+                yanchor="top"
+            ),
+        ],
+        annotations=[
+            dict(text="Colorscale", x=0.02, xref="paper", y=button_layer_1_height, yref="paper",
+                                align="left", showarrow=False),
+            dict(text="Lines and markers", x=0.3, xref="paper", y=button_layer_1_height, yref="paper",
+                                showarrow=False)
+        ]
+    )
+
+
 ############################################################
 ##                                                        ##
 ##                   Fig home page                        ##
@@ -61,12 +157,14 @@ app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 ############################################################
 
 fig_home_page = go.Figure()
-fig_home_page.add_trace(go.Scatter(x=df_global.index, y=df_global["Avg_viewers"], mode="lines+markers"))
+fig_home_page.add_trace(go.Scatter(x=df_global.index, y=df_global["Avg_viewers"], mode="lines+markers", fill="tozeroy"))
+
+add_dropdown_accessibility(fig_home_page)
 
 fig_home_page.update_layout(
-    title_text="Average viewers per month since 2016",
     xaxis_title="Date",
     yaxis_title="Average viewers",
+    font=dict(color="RebeccaPurple",size=18)
 
 )
 
@@ -83,80 +181,16 @@ symbols = ["circle", "square", "diamond", "cross", "x", "triangle-up", "triangle
 for df_col, sym in zip(df_ridge.columns, symbols):
     fig_ridge.add_trace(go.Scatter(y=df_ridge[df_col], x=df_ridge.index, marker_symbol=sym, marker_size=8,name=df_col, mode="lines+markers"))
 
-button_layer_1_height = 1.15
+add_dropdown_accessibility(fig_ridge)
+
 fig_ridge.update_layout(
-    updatemenus=[
-        dict(
-            buttons=list([
-                dict(
-                    args=["colorway", None],
-                    label="Default",
-                    method="relayout"
-                ),
-                dict(
-                    args=["colorway", px.colors.sequential.Viridis],
-                    label="Viridis",
-                    method="relayout"
-                ),
-                dict(
-                    args=["colorway", px.colors.qualitative.D3],
-                    label="D3",
-                    method="relayout"
-                ),
-                dict(
-                    args=["colorway", px.colors.sequential.Rainbow],
-                    label="Rainbow",
-                    method="relayout"
-                ),
-            ]),
-            direction="down",
-            showactive=True,
-            x=0.1,
-            xanchor="left",
-            y=button_layer_1_height,
-            yanchor="top"
-        ),
-        dict(
-            buttons=list([
-                dict(
-                    args=["mode", "lines+markers"],
-                    label="Lines+markers",
-                    method="restyle"
-                ),
-                dict(
-                    args=["mode", "lines"],
-                    label="Lines",
-                    method="restyle"
-                ),
-                dict(
-                    args=["mode", "markers"],
-                    label="Markers",
-                    method="restyle"
-                ),
-            ]),
-            direction="down",
-            showactive=True,
-            x=0.45,
-            xanchor="left",
-            y=button_layer_1_height,
-            yanchor="top"
-        ),
-    ]
+    xaxis_title="Date",
+    yaxis_title="Average viewers",
+    legend_title="Games",
+    font=dict(color="RebeccaPurple",size=18)
 )
 
-fig_ridge.update_layout(
-    annotations=[
-        dict(text="Colorscale", x=0.02, xref="paper", y=1.12, yref="paper",
-                             align="left", showarrow=False),
-        dict(text="Lines and markers", x=0.3, xref="paper", y=1.12, yref="paper",
-                             showarrow=False)
-    ])
 
-
-
-fig_global = px.line(df_global)
-
-categories = ['Avg. views','Ratio watch', 'Ratio', 'Streamers','Views']
 ############################################################
 ##                                                        ##
 ##                   Home page                            ##
@@ -173,20 +207,35 @@ def create_value_card(title, value):
             ]            
         )
     
-    ], color="primary", class_name="text-light ", 
+    ], color="primary", class_name="text-light rounded-pill", 
 )
 
 home = dbc.Container(
     [
+        html.H2('Total average viewers per month since 2016',className='text-center text-primary mt-5'),
         dcc.Graph(figure=fig_home_page),
-        html.Br(),
         dbc.Row(
             [
                 
                 dbc.Col(create_value_card("Total numbers of hours watched", "65'514'080'059")),
                 dbc.Col(create_value_card("Total numbers of hours streamed", "2'158'669'079")),
             ]
-        ),
+        , class_name="mb-2"),
+        dbc.Row(
+            [
+                
+                dbc.Col(create_value_card("Total numbers of days watched", "2'729'753'335")),
+                dbc.Col(create_value_card("Total numbers of days streamed", "89'944'544")),
+            ]
+        , class_name="mb-2"),
+        dbc.Row(
+            [
+                
+                dbc.Col(create_value_card("Total numbers of years watched", "7'478'776")),
+                dbc.Col(create_value_card("Total numbers of years streamed", "246'423")),
+            ]
+        , class_name="mb-2"),
+        html.H2('Top games average viewer since 2016',className='text-center text-primary mt-5'),
         dcc.Graph(figure=fig_ridge)
     ]
 )
@@ -200,7 +249,7 @@ home = dbc.Container(
 games=[{'label':game,'value':game}for game in df_radar_avg_views.index]
 
 game_stats = dbc.Row([
-    html.H2("Game Stats",className="text-center text-primary")
+    html.H2("Table of game statistics",className="text-center text-primary")
 ],id='game-stats')
 
 def game_page(game):
@@ -211,22 +260,111 @@ def game_page(game):
         multi=True
     )
     return dbc.Container([
-        html.H1(game,className="text-center text-primary mt-5"),
-        dcc.Graph(id='game-avg-viewers'),# figure=fig_game_global
-        dcc.Graph(id='game-domination'),# figure=fig_game_domination
-        dbc.Row([
-            dbc.Col([
-                html.H2('Games to Add',className='text-center text-primary'),
-                dbc.Row([
-                    dbc.Col([game_compare]),
-                ]),
-                dcc.Graph(id='fig-radar')
-            ]),
-            dbc.Col([
-                game_stats
-            ])
-        ])
+        # html.H1(game,className="text-center text-primary mt-5"),
+        html.H2('Games to Add',className='text-center text-primary mt-5'),
+        game_compare,
+        html.H2('Average viewers by game',className='text-center text-primary mt-5'),
+        dcc.Graph(id='game-avg-viewers'),
+        html.H2('Domination by game',className='text-center text-primary mt-5'),
+        dcc.Graph(id='game-domination'),
+        html.H2('Game statistics',className='text-center text-primary mt-5'),
+        dcc.Graph(id='fig-radar'),
+        game_stats
     ])
+
+############################################################
+##                                                        ##
+##                      Source                            ##
+##                                                        ##
+############################################################
+
+source = html.Div(
+    dbc.Container(
+        [
+            html.H1("Source", className="display-3"),
+            html.Hr(className="my-2"),
+            html.P([
+                "Source of the dataset we have used can be find ",
+                html.A("here", href="https://www.kaggle.com/rankirsh/evolution-of-top-games-on-twitch"),
+                " on kaggle."
+            ]),           
+            html.P(
+                [
+                    "The creator of the dataset used the website API of ",
+                    html.A("Sullygnome", href="https://sullygnome.com/"),
+                ]
+            ),
+            html.P(
+                [
+                    "Sullygnome use the ",  
+                    html.A("Twitch API", href="https://dev.twitch.tv/"),
+                    " to gather all their data",
+                ]
+            ),
+            html.P(
+                [
+                    "We have used Plotly and Dash to make this webapp. You can find the plotly website ",  
+                    html.A("here", href="https://plotly.com/"),
+                ]
+            ),
+
+            html.P(
+                [
+                    "The logo was made by Antoine \"Edarsel\" Lestrade, you can find his instagram and follow him at ",  
+                    html.A("@e.stradel", href="https://www.instagram.com/e.stradel/?utm_medium=copy_link"),
+                ]
+            ),
+
+        ],
+        fluid=True,
+        className="py-3 text-center",
+    ),
+    className="p-3 bg-light rounded-3",
+)
+
+############################################################
+##                                                        ##
+##                   Game page                            ##
+##                                                        ##
+############################################################
+
+def add_game_line(fig,game, symbols):
+    fig.add_trace(go.Scatter(y=df_viewers[game], x=df_viewers.index,marker_size=8,name=game, mode="lines+markers", marker_symbol=next(symbols)))
+    add_dropdown_accessibility(fig)
+
+def add_game_domination_line(fig,game, symbols):
+    fig.add_trace(go.Scatter(y=df_domination[game], x=df_domination.index,marker_size=8,name=game, mode="lines+markers", marker_symbol=next(symbols)))
+    add_dropdown_accessibility(fig)
+
+def add_row_game(game):
+    return html.Tr([
+                html.Th(f"{game}",scope="row",className='text-center align-middle'),
+                html.Td(f"{df_radar_avg_views[game]/1000:.2f}k" if df_radar_avg_views[game] > 1000 else f"{df_radar_avg_views[game] :.2f}",className='text-center align-middle'),
+                html.Td(f"{df_radar_ratio_watch[game]:.2f}",className='text-center align-middle'),
+                html.Td(f"{df_radar_ratio[game]:.2f}",className='text-center align-middle'),
+                html.Td(f"{df_radar_total_streamers[game]/1000:.2f}k" if df_radar_total_streamers[game] > 1000 else f"{df_radar_total_streamers[game]:.2f}",className='text-center align-middle'),
+                html.Td(f"{df_radar_total_views[game]/1000:.2f}k" if df_radar_total_views[game] > 1000 else f"{df_radar_total_views[game]:.2f}",className='text-center align-middle'),
+            ])
+
+categories = ['Avg. views','Ratio views/streamed', 'Ratio viewer/channel', 'Streamers','Views']
+
+def add_radar_trace(fig_radar,game):
+    fig_radar.add_trace(go.Scatterpolar(
+        r=[df_radar_avg_views_n[game],df_radar_ratio_watch_n[game],df_radar_ratio_n[game],df_radar_total_streamers_n[game],df_radar_total_views_n[game]],
+        theta=categories,
+        fill='toself',
+        name=game,
+        hoverinfo='skip'
+    ))
+
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(
+            visible=True,
+            )),
+        showlegend=False,
+        dragmode=False
+    )
 
 
 ############################################################
@@ -252,7 +390,7 @@ search_bar = dbc.Row(
             width="auto",
         ),
     ],
-    className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
+    className="g-0 ms-auto flex-nowrap mt-3 mt-md-0 w-50",
     align="center",
 )
 
@@ -263,8 +401,8 @@ navbar = dbc.Navbar(
                 # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
                     [
-                        #dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
-                        dbc.Col(dbc.NavbarBrand("Twitch to the Moon", className="ms-2")),
+                        dbc.Col(html.Img(src="https://cdn.discordapp.com/attachments/893500177493684244/921040901965500416/twitch_moon_logo.png", height="50px")),
+                        dbc.Col(dbc.NavbarBrand("to the Moon", className="ms-2")),
                     ],
                     align="center",
                     className="g-0",
@@ -274,7 +412,8 @@ navbar = dbc.Navbar(
             ),
             dbc.Nav(
                 [
-                    dbc.NavLink("Home", href="/", active="exact")
+                    dbc.NavLink("Home", href="/", active="exact"),
+                    dbc.NavLink("Source", href="/source", active="exact")
                 ],
                 pills=True,
             ),
@@ -291,6 +430,7 @@ navbar = dbc.Navbar(
     color="primary",
     dark=True,
 )
+
 
 content = html.Div(id="page-content")
 
@@ -322,17 +462,17 @@ def render_page_content(pathname):
         return home
     elif link[1]=="game":
         return game_page(unquote(link[2]))
-    elif pathname == "/page-1":
-        return html.P("This is the content of page 1. Yay!")
-    elif pathname == "/page-2":
-        return html.P("Oh cool, this is page 2!")
+    elif pathname == "/source":
+        return source
     # If the user tries to reach a different page, return a 404 message
-    return dbc.Jumbotron(
+    return dbc.Container(
         [
-            html.H1("404: Not found", className="text-danger"),
+            html.H1("404: Not found", className="text-danger display-3"),
             html.Hr(),
             html.P(f"The pathname {pathname} was not recognised..."),
-        ]
+        ], 
+        fluid=True,
+        className="py-3 text-center p-3 bg-light rounded-3"
     )
 
 @app.callback(
@@ -358,9 +498,11 @@ def update_fig_radar(value):
     fig_radar.update_layout(
         polar=dict(
             radialaxis=dict(
-            visible=True,
+            visible=False,
             )),
-        showlegend=True
+        showlegend=True,
+        legend_title="Games",
+        font=dict(color="RebeccaPurple",size=18)
     )
 
     return fig_radar
@@ -371,15 +513,15 @@ def update_fig_radar(value):
 )
 def update_game_avg_viewers(value):
     fig_domination = go.Figure()
+    symbols = symbols_gen()
     if isinstance(value,list):
         for game in value:
-            add_game_domination_line(fig_domination,game)
+            add_game_domination_line(fig_domination,game, symbols)
     elif isinstance(value, str):
-        add_game_domination_line(fig_domination,value)
+        add_game_domination_line(fig_domination,value, symbols)
     
     fig_domination.update_layout(
         #plot_bgcolor ='thistle',
-        title="Domination by game",
         xaxis_title="Date",
         yaxis_title="Domination",
         legend_title="Games",
@@ -393,54 +535,21 @@ def update_game_avg_viewers(value):
 )
 def update_game_avg_viewers(value):
     fig_game_avg = go.Figure()
+    symbols = symbols_gen()
     if isinstance(value,list):
         for game in value:
-            add_game_line(fig_game_avg,game)
+            add_game_line(fig_game_avg,game, symbols)
     elif isinstance(value, str):
-        add_game_line(fig_game_avg,value)
+        add_game_line(fig_game_avg,value, symbols)
     
     fig_game_avg.update_layout(
         #plot_bgcolor ='thistle',
-        title="Average viewers by game",
         xaxis_title="Date",
         yaxis_title="Average viewers",
         legend_title="Games",
         font=dict(color="RebeccaPurple",size=18)
     )
     return fig_game_avg
-
-def add_game_line(fig,game):
-    fig.add_trace(go.Scatter(y=df_viewers[game], x=df_viewers.index,marker_size=8,name=game, mode="lines+markers"))
-
-def add_game_domination_line(fig,game):
-    fig.add_trace(go.Scatter(y=df_domination[game], x=df_domination.index,marker_size=8,name=game, mode="lines+markers"))
-
-def add_row_game(game):
-    return html.Tr([
-                html.Th(f"{game}",scope="row",className='text-center align-middle'),
-                html.Td(f"{df_radar_avg_views[game]/1000:.2f}k",className='text-center align-middle'),
-                html.Td(f"{df_radar_ratio_watch[game]:.2f}",className='text-center align-middle'),
-                html.Td(f"{df_radar_ratio[game]:.2f}",className='text-center align-middle'),
-                html.Td(f"{df_radar_total_streamers[game]/1000:.2f}k",className='text-center align-middle'),
-                html.Td(f"{df_radar_total_views[game]/1000:.2f}k",className='text-center align-middle'),
-            ])
-
-def add_radar_trace(fig_radar,game):
-    fig_radar.add_trace(go.Scatterpolar(
-        r=[df_radar_avg_views_n[game],df_radar_ratio_watch_n[game],df_radar_ratio_n[game],df_radar_total_streamers_n[game],df_radar_total_views_n[game]],
-        theta=categories,
-        fill='toself',
-        name=game
-    ))
-
-    fig_radar.update_layout(
-        polar=dict(
-            radialaxis=dict(
-            visible=True,
-            )),
-        showlegend=False
-    )
-
 
 @app.callback(
     Output('game-stats', 'children'),
@@ -452,8 +561,8 @@ def update_dropdown_compare(value,children):
                 html.Tr([
                     html.Th("Game",scope='col',className='text-center align-middle'),
                     html.Th("Avg. views",scope='col',className='text-center align-middle'),
-                    html.Th("Ratio watch",scope='col',className='text-center align-middle'),
-                    html.Th("Ratio",scope='col',className='text-center align-middle'),
+                    html.Th("Ratio views/streamed",scope='col',className='text-center align-middle'),
+                    html.Th("Ratio viewer/channel",scope='col',className='text-center align-middle'),
                     html.Th("Streamers",scope='col',className='text-center align-middle'),
                     html.Th("Views",scope='col',className='text-center align-middle')
             ])
@@ -461,7 +570,7 @@ def update_dropdown_compare(value,children):
     tbody = []
     children = [
         dbc.Row([
-            dbc.Col([html.H2("Game Stats",className="text-center text-primary")])
+            dbc.Col([html.H2("Table of game statistics",className="text-center text-primary")])
         ]),
         dbc.Row([
             dbc.Table(thead + [html.Tbody(tbody)],bordered=True,dark=False,hover=True,responsive=True,striped=True,color='secondary')
@@ -484,4 +593,4 @@ def update_dropdown_compare(value,children):
 ############################################################
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8888, use_reloader=True)
+    app.run_server(port=8888, use_reloader=True)
