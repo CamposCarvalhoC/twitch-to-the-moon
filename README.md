@@ -11,7 +11,7 @@ Twitch to the Moon sert à visualiser les informations sur les statistiques des 
 *Testé sous python: `3.9.7`*
 
 Pour lancer le serveur il est conseillé de créer un environnement:
-1. Se placer dans le dossier du projet `twitch-to-the-moon`:
+1. Se placer dans le dossier du projet `twitch-to-the-moon`.
 2. Créer l'envrionnement *python*:
 ```
 python -m venv venv
@@ -43,6 +43,6 @@ python main.py
 
 6. Se connecter sur l'adresse *localhost* : [http://127.0.0.1:8888](http://127.0.0.1:8888).
 
-### Sources
+### Source
 
 [Top games on Twitch 2016 - 2021 sur kaggle.com](https://www.kaggle.com/rankirsh/evolution-of-top-games-on-twitch)
