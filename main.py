@@ -52,8 +52,6 @@ df_radar_ratio_n = normalize(df_radar_ratio_n)
 df_radar_total_streamers_n = normalize(df_radar_total_streamers_n)
 df_radar_total_views_n = normalize(df_radar_total_views_n)
 
-print(df_radar_avg_views_n["Fortnite"])
-
 app = dash.Dash(external_stylesheets=[dbc.themes.PULSE,dbc.icons.BOOTSTRAP])
 
 ############################################################
@@ -240,12 +238,12 @@ def game_page(game):
 game_dropwdown = dcc.Dropdown(
     id='dropwdown-game',
     options=games,
-    value='Fortnite'
+    value='Fortnite',
 )
 
 search_bar = dbc.Row(
     [
-        game_dropwdown,
+        dbc.Col([game_dropwdown],width=9),
         dbc.Col(
             dcc.Link(
             dbc.Button(
