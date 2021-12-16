@@ -57,7 +57,7 @@ Il contient trois graphes:
 * Les données temporelles sur le nombre de spectateurs moyennés par mois.
 * La domination en pourcentage du au fil du temps.
 * Un radar plot avec les statistiques suivantes:
-  * Avg. views: Nombre moyen de viewers.
+  * Peak viewers: Le plus grand pique de viewers.
   * Ratio watch: Nombres de viewers/Nombres d'heures diffusés
   * Ratio: Moyenne du nombre de viewers par streamer
   * Streamers: Moyenne du nombre de streamers au fil de l'année.
@@ -66,3 +66,18 @@ Il contient trois graphes:
 Toutes les échelles sont mises à l'échelle logarithmique pour avoir une meilleure visualisation entre les petits et grands jeux. Le tableau est là pour donner les valeurs réelles. Les chiffres trop grands sont remplacés par l'unité $k$.
 
 La barre de recherche offre la possibilité de taper le nom des jeux (avec filtrage sur la liste complète pendant la recherche) puis de les comparer. Les ajouts sont reversibles et visibles à l'oeil de l'utilisateur sur la barre de recherche. Chaque ajout/supression de jeu va mettre à jour les trois graphes et le tableau.
+
+### Source
+
+Les sources utilisées pour ce site web viennent d'une base de données trouvée sur [Top games on Twitch 2016 - 2021 kaggle.com](https://www.kaggle.com/rankirsh/evolution-of-top-games-on-twitch).
+
+Elle contient les données mensuelles suivantes pour chaque jeu (de 2016 à 2021):
+* Rank
+* Hours watched
+* Hours streamed
+* Peak viewers
+* Peak channels
+* Streamers
+* Avg viewers
+* Avg channels
+* Avg viewer ratio
