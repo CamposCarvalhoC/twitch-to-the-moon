@@ -27,7 +27,7 @@ df_viewers.set_index("date", inplace=True)
 df_domination.set_index("date", inplace=True)
 
 # Dataframes radar
-df_radar_avg_views = pd.read_csv("data processing/data/radar_avg_views.csv",squeeze=True,index_col=0)
+df_radar_avg_views = pd.read_csv("data processing/data/radar_mean_views.csv",squeeze=True,index_col=0)
 df_radar_ratio_watch = pd.read_csv("data processing/data/radar_ratio_watch.csv",squeeze=True,index_col=0)
 df_radar_ratio = pd.read_csv("data processing/data/radar_ratio.csv",squeeze=True,index_col=0)
 df_radar_total_streamers = pd.read_csv("data processing/data/radar_total_streamers.csv",squeeze=True,index_col=0)
