@@ -524,7 +524,7 @@ def update_game_avg_viewers(value):
     fig_domination.update_layout(
         #plot_bgcolor ='thistle',
         xaxis_title="Date",
-        yaxis_title="Domination",
+        yaxis_title="Domination [%]",
         legend_title="Games",
         font=dict(color="RebeccaPurple",size=18)
     )
