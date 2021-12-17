@@ -57,11 +57,11 @@ Il contient trois graphes:
 * Les données temporelles sur le nombre de spectateurs moyennés par mois.
 * La domination en pourcentage du au fil du temps.
 * Un radar plot avec les statistiques suivantes:
-  * Peak viewers: Le plus grand pique de viewers.
+  * Avg viewers: Moyenne du nombre de viewers.
   * Ratio watch: Nombres de viewers/Nombres d'heures diffusés
   * Ratio: Moyenne du nombre de viewers par streamer
-  * Streamers: Moyenne du nombre de streamers au fil de l'année.
-  * Views: Moyenne du nombre de spectateurs au fil de l'année.
+  * Streamers: Moyenne du nombre d'heure streamer au fil de l'année.
+  * Views: Moyenne du nombre d'heure vue au fil de l'année.
 
 Toutes les échelles sont mises à l'échelle logarithmique pour avoir une meilleure visualisation entre les petits et grands jeux. Le tableau est là pour donner les valeurs réelles. Les chiffres trop grands sont remplacés par l'unité $k$.
 
